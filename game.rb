@@ -1,5 +1,6 @@
 class Tile
   attr_reader :is_mine
+  attr_reader :is_revealed
   attr_accessor :mines_around
 
   def initialize(num)
@@ -14,6 +15,10 @@ class Tile
     if is_mine
       @mines_around = -1
     end
+  end
+
+  def has_mines_around?
+    @mines_around > 0
   end
 end
 
@@ -42,6 +47,35 @@ end
 class Board
   def initialize(tiles)
     @tiles = tiles
+  end
+
+  def get_tile(x, y):
+    # thow an exception if not valid
+  end
+
+  def reveal_tile tile
+    tile.reveal
+
+    neighbours = get_neighbours_of tile
+    neighbours.each do |neigbour_tile|
+
+      if neigbour_tile.is_revealed?
+        next
+      end
+
+      neigbour_tile.reveal
+
+      if neigbour_tile.is_mine?
+        raise Exception('Blow !!')
+      end
+
+
+      if neigbour_tile.has_mines_around?
+        next
+      end
+
+      reveal_neighbours_of neigbour_tile      
+    end
   end
 
   # def get_neighbour(tile_num)
@@ -150,7 +184,16 @@ class ActionHandlerManager
   def get(action) end
 
   class ReveealTileActionHandler
-    def handle(action, board) end
+    def handle(action, board) 
+      tile = board.get_tile(action.x, action.y)
+      
+      begin
+        board.reveal_tile tile
+      rescue MineBlownException
+        return OpStatusGameOver.new 'Mine has blown'
+      end
+     
+    end
   end
 
   class RevealTileAction
