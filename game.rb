@@ -64,7 +64,6 @@ class Board
   end
 
   def reveal_tile tile
-    # tile.reveal
     tiles_to_check = get_neighbours_of tile
     tiles_to_check.prepend tile
     tiles_to_check.each do |neigbour_tile|
@@ -169,13 +168,22 @@ class GameRuntime
     #     raise Exception.new 'Game is ended'
     # end
 
-    op_status = action_handlers.get(action).handle(action, @board)
-    handle_game_status op_status
+    # op_status = action_handlers.get(action).handle(action, @board)
+    # handle_game_status op_status
+
+
+
+    action_handlers.get(action).handle(action, @board)
+    handle_game_status
   end
 
   private
 
   def handle_game_status op_status
+    # player won if 
+    # all tiles either revealed or marked as mines
+
+    # if player won throw an appropriate exception
   end
 end
 
@@ -184,24 +192,31 @@ class ActionHandlerManager
 
   class ReveealTileActionHandler
     def handle(action, board) 
-      begin
-        board.reveal_tile_at action.x action.y
-      rescue MineBlownException
-        return OpStatusGameOver.new 'Mine has blown'
-      end
-     
+      board.reveal_tile_at(action.x action.y)
+
+      # begin
+      #   board.reveal_tile_at(action.x action.y)
+      # rescue MineBlownException
+      #   return OpStatusGameOver.new 'Mine has blown'
+      # end
+
+      # return OpStatusGameProceeds.new
     end
   end
 
   class RevealTileAction
-    def initialize(x, y) end
+    def initialize(x, y) 
+    end
   end
 
   class MarkMineActionHandler
-    def handle(action, board) end
+    def handle(action, board)
+      board.mark_mine_at(action.x, action.y)
+    end
   end
 
   class MarkMineAction
-    def initialize(x, y) end
+    def initialize(x, y) 
+    end
   end
 end
