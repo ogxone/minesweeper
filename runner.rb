@@ -1,0 +1,1 @@
+ConsoleInteractor.new.run(50, 50)

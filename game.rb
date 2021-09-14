@@ -68,23 +68,22 @@ class Board
     tiles_to_check = get_neighbours_of tile
     tiles_to_check.prepend tile
     tiles_to_check.each do |neigbour_tile|
+      if neigbour_tile.is_revealed?
+        next
+      end
 
-    if neigbour_tile.is_revealed?
-      next
-    end
+      neigbour_tile.reveal
 
-    neigbour_tile.reveal
-
-    if neigbour_tile.is_mine?
-      raise Exception('Blow !!')
-    end
+      if neigbour_tile.is_mine?
+        raise Exception('Blow !!')
+      end
 
 
-    if neigbour_tile.has_mines_around?
-      next
-    end
+      if neigbour_tile.has_mines_around?
+        next
+      end
 
-    reveal_tile neigbour_tile      
+      reveal_tile neigbour_tile      
     end
   end
 
@@ -116,6 +115,8 @@ class BoardGenerator
     generate_tiles
     generate_mines
     mark_tiles
+
+    board
   end
 
   private
@@ -158,8 +159,9 @@ class BoardGenerator
 end
 
 class GameRuntime
-  def initialize
+  def initialize(board)
     @is_live = true
+    @board = board
   end
 
   def do_action(action)
@@ -167,7 +169,7 @@ class GameRuntime
     #     raise Exception.new 'Game is ended'
     # end
 
-    op_status = action_handlers.get(action).handle(action, self.board)
+    op_status = action_handlers.get(action).handle(action, @board)
     handle_game_status op_status
   end
 
