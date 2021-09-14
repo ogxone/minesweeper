@@ -45,44 +45,53 @@ class Tiles < Array
 end
 
 class Board
-  def initialize(tiles)
+  def initialize(tiles, dim_x, dim_y)
     @tiles = tiles
+    @dim_x = dim_x
+    @dim_y = dim_y
   end
 
   def get_tile(x, y):
-    # thow an exception if not valid
+    i = @dim_x * (y - 1) + x
+
+    tile = @tiles[i]
+
+    if tile == nil
+      raise TileNotFoundException
+    end
+    
+    tile
   end
 
   def reveal_tile tile
-    tile.reveal
+    # tile.reveal
+    tiles_to_check = get_neighbours_of tile
+    tiles_to_check.prepend tile
+    tiles_to_check.each do |neigbour_tile|
 
-    neighbours = get_neighbours_of tile
-    neighbours.each do |neigbour_tile|
+    if neigbour_tile.is_revealed?
+      next
+    end
 
-      if neigbour_tile.is_revealed?
-        next
-      end
+    neigbour_tile.reveal
 
-      neigbour_tile.reveal
-
-      if neigbour_tile.is_mine?
-        raise Exception('Blow !!')
-      end
+    if neigbour_tile.is_mine?
+      raise Exception('Blow !!')
+    end
 
 
-      if neigbour_tile.has_mines_around?
-        next
-      end
+    if neigbour_tile.has_mines_around?
+      next
+    end
 
-      reveal_neighbours_of neigbour_tile      
+    reveal_tile neigbour_tile      
     end
   end
 
-  # def get_neighbour(tile_num)
-  #     tiles_around = []
-
-  #     @tiles.get_neighbours_of(tile_num).
-  # end
+  def reveal_tile_at x, y
+    tile = git_tile(x, y)
+    reveal_tile tile
+  end
 end
 
 class BoardGenerator
@@ -102,7 +111,7 @@ class BoardGenerator
   end
 
   def generate
-    board = Board.new @tiles
+    board = Board.new @tiles @dim_x, @dim_y
 
     generate_tiles
     generate_mines
@@ -113,7 +122,7 @@ class BoardGenerator
 
   def generate_tiles
     (@board_size).times do |i|
-      tiles << Tile.new i
+      @tiles << Tile.new i
     end
   end
 
@@ -146,15 +155,6 @@ class BoardGenerator
       cur_tile.mines_around = neighbor_mines
     end
   end
-
-  # def generate_tiles_2_dims
-  #     @y.times |y_i| do
-  #         @tiles[y_i] = []
-  #         1.upto(@x) |x_i| do
-  #             tiles[x_i][y_i] = Tile.new y_i * @dim_x + x_i
-  #         end
-  #     end
-  # end
 end
 
 class GameRuntime
@@ -177,18 +177,13 @@ class GameRuntime
   end
 end
 
-# class Action
-# end
-
 class ActionHandlerManager
   def get(action) end
 
   class ReveealTileActionHandler
     def handle(action, board) 
-      tile = board.get_tile(action.x, action.y)
-      
       begin
-        board.reveal_tile tile
+        board.reveal_tile_at action.x action.y
       rescue MineBlownException
         return OpStatusGameOver.new 'Mine has blown'
       end
