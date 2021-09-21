@@ -1,1 +1,1 @@
-ConsoleInteractor.new.run(50, 50)
+ConsoleInteractor.new.run()

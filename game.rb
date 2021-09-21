@@ -90,6 +90,15 @@ class Board
     tile = git_tile(x, y)
     reveal_tile tile
   end
+
+  def mark_mine tile
+    tile.mark_as_mine
+  end
+
+  def mark_mine_at x, y
+    tile = git_tile(x, y)
+    mark_mine tile
+  end
 end
 
 class BoardGenerator
@@ -193,14 +202,6 @@ class ActionHandlerManager
   class ReveealTileActionHandler
     def handle(action, board) 
       board.reveal_tile_at(action.x action.y)
-
-      # begin
-      #   board.reveal_tile_at(action.x action.y)
-      # rescue MineBlownException
-      #   return OpStatusGameOver.new 'Mine has blown'
-      # end
-
-      # return OpStatusGameProceeds.new
     end
   end
 
