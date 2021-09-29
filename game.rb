@@ -2,10 +2,10 @@ class Tile
   attr_reader :is_mine
   attr_reader :is_revealed
   attr_accessor :mines_around
+  attr_reader :marked_as_mine
 
   def initialize(num)
     @is_revealed = False
-    # @type = tyle_type
     @is_mine = False
     @mines_around = 0
   end
@@ -15,6 +15,10 @@ class Tile
     if is_mine
       @mines_around = -1
     end
+  end
+
+  def mark_as_mine
+    self.marked_as_mine = True
   end
 
   def has_mines_around?
@@ -41,6 +45,7 @@ class Tiles < Array
         neighbours << @tiles[index]
       end
     end
+    neighbours
   end
 end
 
@@ -64,27 +69,20 @@ class Board
   end
 
   def reveal_tile tile
-    tiles_to_check = get_neighbours_of tile
-    tiles_to_check.prepend tile
-    tiles_to_check.each do |neigbour_tile|
-      if neigbour_tile.is_revealed?
-        next
-      end
+    tile.reveal
 
-      neigbour_tile.reveal
+    if tile.is_mine?
+      raise GameOverException('Blow !!')
+    end
 
-      if neigbour_tile.is_mine?
-        raise Exception('Blow !!')
-      end
+    if tile.has_mines_around?
+      return
+    end
 
-
-      if neigbour_tile.has_mines_around?
-        next
-      end
-
-      reveal_tile neigbour_tile      
+    reveal_tile_neighbours tile
     end
   end
+
 
   def reveal_tile_at x, y
     tile = git_tile(x, y)
@@ -98,6 +96,26 @@ class Board
   def mark_mine_at x, y
     tile = git_tile(x, y)
     mark_mine tile
+  end
+
+  private
+
+  def reveal_tile_neighbours(tile)
+    neigbour_tiles = get_neighbours_of tile
+    neigbour_tiles.each do |neigbour_tile|
+      if neigbour_tile.is_revealed?
+        next
+      end
+
+      neigbour_tile.reveal
+
+      if neigbour_tile.has_mines_around?
+        next
+      end
+
+      reveal_tile_neighbours neigbour_tile      
+    end
+
   end
 end
 
@@ -173,26 +191,31 @@ class GameRuntime
   end
 
   def do_action(action)
-    # if not @is_live
-    #     raise Exception.new 'Game is ended'
-    # end
+    if not @is_live
+      raise StandardException.new('Game is over')
+    end
 
-    # op_status = action_handlers.get(action).handle(action, @board)
-    # handle_game_status op_status
-
-
-
-    action_handlers.get(action).handle(action, @board)
-    handle_game_status
+    begin
+      action_handlers.get(action).handle(action, @board)
+      handle_game_status
+    rescue GameEndException
+      @is_live = false
+      raise
+    end
   end
 
   private
 
-  def handle_game_status op_status
-    # player won if 
-    # all tiles either revealed or marked as mines
+  def handle_game_status
+    @board.tiles.each do |tile|
+      if tile.is_revealed? or (tile.is_mine? and tile.marked_as_mine?)
+        next
+      end
 
-    # if player won throw an appropriate exception
+      return
+    end
+
+    raise GameSuccessException
   end
 end
 
@@ -207,6 +230,8 @@ class ActionHandlerManager
 
   class RevealTileAction
     def initialize(x, y) 
+      @x = x
+      @y = y
     end
   end
 
@@ -218,6 +243,20 @@ class ActionHandlerManager
 
   class MarkMineAction
     def initialize(x, y) 
+      @x = x
+      @y = y
     end
   end
+end
+
+class GameEndException < StandardError
+end
+
+class GameOverException < GameEndException
+end
+
+class GameSuccessException < GameEndException
+end
+
+class TileNotFoundException < StandardError
 end
