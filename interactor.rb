@@ -1,9 +1,13 @@
+require_relative('game')
+
 class ConsoleInteractor
     def run()
         board = generate_board
         game_runtime = GameRuntime.new(board)
 
-        render(ConsoleScreen.new.with_board(board))
+        r = ConsoleRenderer.new
+
+        r.render(ConsoleScreen.new.with_board(board))
 
         loop do
             screen = ConsoleScreen.new
@@ -14,7 +18,7 @@ class ConsoleInteractor
             begin
                 action = create_action(action_data)
             rescue StandardError => e
-                render(screen.with_message('invalied input. Message was:' + e.message).with_help.with_board(board))
+                r.render(screen.with_message('invalied input. Message was:' + e.message).with_help.with_board(board))
                 next
             end
 
@@ -29,7 +33,7 @@ class ConsoleInteractor
             rescue GameRuntimeException => e
                 screen.with_message('Runtime exception. Message was:' + e.message)
             ensure
-                render(screen.with_board(board))
+                r.render(screen.with_board(board))
             end
         end
     end
@@ -63,11 +67,50 @@ class ConsoleInteractor
     end
 end
 
-class ConsoleScreen:
-    attr_writer :with_help, :with_message, :with_board
+class ConsoleScreen
+    attr_reader :help, :message, :board
     def initialize
-        @with_help = False
-        @with_message = nil
-        @with_board = nil
+        @board = nil
+        @help = nil
+        @message = nil
+    end
+    
+    def with_board board
+        @board = board
+    end
+
+    def has_help help
+        @help = help
+    end
+
+    def has_message message
+        @message = message
+    end
+
+end
+
+class ConsoleRenderer
+    def render(console_screen)
+        unless console_screen.board.nil?
+            render_board(console_screen.board)
+        end
+
+        unless console_screen.help.nil?
+            render_help(console_screen.help)
+        end
+
+        unless console_screen.message.nil?
+            render_message(console_screen.message)
+        end
+    end
+
+    private
+    def render_board
+    end
+
+    def render_help
+    end
+
+    def render_message
     end
 end

@@ -56,7 +56,7 @@ class Board
     @dim_y = dim_y
   end
 
-  def get_tile(x, y):
+  def get_tile(x, y)
     i = @dim_x * (y - 1) + x
 
     tile = @tiles[i]
@@ -80,7 +80,7 @@ class Board
     end
 
     reveal_tile_neighbours tile
-    end
+    # end
   end
 
 
@@ -115,7 +115,6 @@ class Board
 
       reveal_tile_neighbours neigbour_tile      
     end
-
   end
 end
 
@@ -126,7 +125,7 @@ class BoardGenerator
   end
 
   def with_dims(x, y)
-    @dim_x = d
+    @dim_x = x
     @dim_y = y
     @board_size = @dim_x * @dim_y
   end
@@ -136,7 +135,7 @@ class BoardGenerator
   end
 
   def generate
-    board = Board.new @tiles @dim_x, @dim_y
+    board = Board.new(@tiles, @dim_x, @dim_y)
 
     generate_tiles
     generate_mines
@@ -149,7 +148,7 @@ class BoardGenerator
 
   def generate_tiles
     (@board_size).times do |i|
-      @tiles << Tile.new i
+      @tiles << Tile.new(i)
     end
   end
 
