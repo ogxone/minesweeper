@@ -44,14 +44,17 @@ class ConsoleInteractor
         board_generator = BoardGenerator.new
 
         puts 'Enter x dim:'
-        dim_x = gets
+        # dim_x = gets
+        dim_x = 5
         puts 'Enter y dim:'
-        dim_y = gets
+        # dim_y = gets
+        dim_y = 5
         # todo validate
         board_generator.with_dims(dim_x, dim_y)
 
         puts 'Enter amount of mines:'
-        mines = gets
+        # mines = gets
+        mines = 5
 
         board_generator.with_mines(mines)
 

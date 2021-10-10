@@ -1,12 +1,11 @@
 class Tile
-  attr_reader :is_mine
-  attr_reader :is_revealed
+  attr_reader :is_mine, :is_revealed, :marked_as_mine, :num
   attr_accessor :mines_around
-  attr_reader :marked_as_mine
 
   def initialize(num)
-    @is_revealed = False
-    @is_mine = False
+    @num = num
+    @is_revealed = false
+    @is_mine = false
     @mines_around = 0
   end
 
@@ -18,31 +17,44 @@ class Tile
   end
 
   def mark_as_mine
-    self.marked_as_mine = True
+    @marked_as_mine = true
   end
 
   def has_mines_around?
     @mines_around > 0
   end
+
+  def reveal
+    @is_revealed = true
+  end
+
+  def ==(other)
+    self.num == other.num
+  end
 end
 
 class Tiles < Array
+  def initialize(row_length, *several_variants)
+    @row_length = row_length
+    super(*several_variants)
+  end
+
   def get_neighbours_of(tile_num)
     neighbours = []
     indexes = [
-      tile_num - length - 1,
-      tile_num - length,
-      tile_num - length + 1,
+      tile_num - @row_length - 1,
+      tile_num - @row_length,
+      tile_num - @row_length + 1,
       tile_num - 1,
       tile_num + 1,
-      tile_num + length - 1,
-      tile_num + length,
-      tile_num + length + 1
+      tile_num + @row_length - 1,
+      tile_num + @row_length,
+      tile_num + @row_length + 1
     ]
 
     indexes.each do |index|
-      if not @tiles[index].nil?
-        neighbours << @tiles[index]
+      unless index < 0 or self[index].nil?
+        neighbours << self[index]
       end
     end
     neighbours
@@ -64,14 +76,14 @@ class Board
     if tile == nil
       raise TileNotFoundException
     end
-    
+
     tile
   end
 
   def reveal_tile tile
     tile.reveal
 
-    if tile.is_mine?
+    if tile.is_mine
       raise GameOverException('Blow !!')
     end
 
@@ -83,7 +95,6 @@ class Board
     # end
   end
 
-
   def reveal_tile_at x, y
     tile = git_tile(x, y)
     reveal_tile tile
@@ -94,54 +105,54 @@ class Board
   end
 
   def mark_mine_at x, y
-    tile = git_tile(x, y)
+    tile = get_tile(x, y)
     mark_mine tile
   end
 
   private
 
   def reveal_tile_neighbours(tile)
-    neigbour_tiles = get_neighbours_of tile
-    neigbour_tiles.each do |neigbour_tile|
-      if neigbour_tile.is_revealed?
+    neighbour_tiles = get_neighbours_of tile
+    neighbour_tiles.each do |neighbour_tile|
+      if neighbour_tile.is_revealed
         next
       end
 
-      neigbour_tile.reveal
+      neighbour_tile.reveal
 
-      if neigbour_tile.has_mines_around?
+      if neighbour_tile.has_mines_around?
         next
       end
 
-      reveal_tile_neighbours neigbour_tile      
+      reveal_tile_neighbours neighbour_tile
     end
   end
 end
 
 class BoardGenerator
   def initialize
-    @tiles = Tiles.new
     with_dims 0, 0
   end
 
   def with_dims(x, y)
-    @dim_x = x
-    @dim_y = y
+    @dim_x = x.to_i
+    @dim_y = y.to_i
     @board_size = @dim_x * @dim_y
   end
 
   def with_mines(mines_amount)
-    @mines_count = mines_amount
+    @mines_amount = mines_amount.to_i
   end
 
   def generate
-    board = Board.new(@tiles, @dim_x, @dim_y)
+    @tiles = Tiles.new(@dim_x)
+    @board = Board.new(@tiles, @dim_x, @dim_y)
 
     generate_tiles
     generate_mines
     mark_tiles
 
-    board
+    @board
   end
 
   private
@@ -155,13 +166,13 @@ class BoardGenerator
   def generate_mines
     @mines_amount.times do
       loop do
-        mine_place = rand(0..@board_size)
+        mine_place = rand(0..@board_size - 1)
 
         if @tiles[mine_place].is_mine
           next
         end
 
-        @tiles[mine_place].is_mine = True
+        @tiles[mine_place].is_mine = true
         break
       end
     end
@@ -173,7 +184,7 @@ class BoardGenerator
         next
       end
       neighbor_mines = 0
-      @tiles.get_neighbours_of(tile.num).each do |neighbor_tile|
+      @tiles.get_neighbours_of(cur_tile.num).each do |neighbor_tile|
         if neighbor_tile.is_mine
           neighbor_mines += 1
         end
@@ -190,8 +201,8 @@ class GameRuntime
   end
 
   def do_action(action)
-    if not @is_live
-      raise StandardException.new('Game is over')
+    unless @is_live
+      raise StandardError.new('Game is over')
     end
 
     begin
@@ -220,31 +231,31 @@ end
 
 class ActionHandlerManager
   def get(action) end
+end
 
-  class ReveealTileActionHandler
-    def handle(action, board) 
-      board.reveal_tile_at(action.x action.y)
-    end
+class RevealTileActionHandler
+  def handle(action, board)
+    board.reveal_tile_at(action.x action.y)
   end
+end
 
-  class RevealTileAction
-    def initialize(x, y) 
-      @x = x
-      @y = y
-    end
+class RevealTileAction
+  def initialize(x, y)
+    @x = x
+    @y = y
   end
+end
 
-  class MarkMineActionHandler
-    def handle(action, board)
-      board.mark_mine_at(action.x, action.y)
-    end
+class MarkMineActionHandler
+  def handle(action, board)
+    board.mark_mine_at(action.x, action.y)
   end
+end
 
-  class MarkMineAction
-    def initialize(x, y) 
-      @x = x
-      @y = y
-    end
+class MarkMineAction
+  def initialize(x, y)
+    @x = x
+    @y = y
   end
 end
 
