@@ -34,7 +34,7 @@ class ConsoleInteractor
                 screen.with_message('Runtime exception. Message was:' + e.message)
             ensure
                 r.render(screen.with_board(board))
-            end
+            end 
         end
     end
 
@@ -42,7 +42,7 @@ class ConsoleInteractor
 
     def generate_board
         board_generator = BoardGenerator.new
-
+ 
         puts 'Enter x dim:'
         # dim_x = gets
         dim_x = 5
