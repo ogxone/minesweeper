@@ -41,22 +41,49 @@ class Tiles < Array
 
   def get_neighbours_of(tile_num)
     neighbours = []
+    
+    tile_row = (tile_num / @row_length.to_f).floor
+
     indexes = [
-      tile_num - @row_length - 1,
-      tile_num - @row_length,
-      tile_num - @row_length + 1,
-      tile_num - 1,
-      tile_num + 1,
-      tile_num + @row_length - 1,
-      tile_num + @row_length,
-      tile_num + @row_length + 1
+      {
+        :row => tile_row - 1 ,
+        :indexes => [
+          tile_num - @row_length - 1,
+          tile_num - @row_length,
+          tile_num - @row_length + 1,    
+        ]
+      },
+      {
+        :row => tile_row,
+        :indexes => [
+          tile_num - 1,
+          tile_num + 1,    
+        ]
+      },
+      {
+        :row => tile_row + 1,
+        :indexes => [
+          tile_num + @row_length - 1,
+          tile_num + @row_length,
+          tile_num + @row_length + 1
+        ]
+      }
     ]
 
-    indexes.each do |index|
-      unless index < 0 or self[index].nil?
-        neighbours << self[index]
+    indexes.each do |spec|
+      next if spec[:row] < 0
+
+      spec[:indexes].each do |index|
+        next if index < 0
+
+        cur_index_row = (index / @row_length.to_f).floor
+
+        next if cur_index_row != spec[:row]
+
+        neighbours << self[index] unless self[index].nil?
       end
     end
+
     neighbours
   end
 end
@@ -158,7 +185,7 @@ class BoardGenerator
   private
 
   def generate_tiles
-    (@board_size).times do |i|
+    @board_size.times do |i|
       @tiles << Tile.new(i)
     end
   end
