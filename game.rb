@@ -17,12 +17,13 @@ class Tile
   end
 
   def mark_as_mine
-    @marked_as_mine = true
+    self.is_mine= true
   end
 
   def has_mines_around?
     @mines_around > 0
   end
+  
 
   def reveal
     @is_revealed = true
@@ -89,18 +90,21 @@ class Tiles < Array
 end
 
 class Board
+  attr_reader :tiles
   def initialize(tiles, dim_x, dim_y)
     @tiles = tiles
     @dim_x = dim_x
     @dim_y = dim_y
   end
 
-  def get_tile(x, y)
-    i = @dim_x * (y - 1) + x
+  def get_tile_at(x, y)
+    x +=1
+    y += 1
+    i = @dim_x * (y - 1) + x - 1 
 
     tile = @tiles[i]
 
-    if tile == nil
+    if tile.nil?
       raise TileNotFoundException
     end
 
@@ -109,9 +113,9 @@ class Board
 
   def reveal_tile tile
     tile.reveal
-
+  
     if tile.is_mine
-      raise GameOverException('Blow !!')
+      raise GameOverException.new('Blow !!')
     end
 
     if tile.has_mines_around?
@@ -123,23 +127,20 @@ class Board
   end
 
   def reveal_tile_at x, y
-    tile = git_tile(x, y)
+    tile = get_tile_at(x, y)
+    p x, y, tile
     reveal_tile tile
   end
 
-  def mark_mine tile
-    tile.mark_as_mine
-  end
-
   def mark_mine_at x, y
-    tile = get_tile(x, y)
-    mark_mine tile
+    tile = get_tile_at(x, y)
+    tile.is_mine = true
   end
 
   private
 
   def reveal_tile_neighbours(tile)
-    neighbour_tiles = get_neighbours_of tile
+    neighbour_tiles = @tiles.get_neighbours_of tile.num
     neighbour_tiles.each do |neighbour_tile|
       if neighbour_tile.is_revealed
         next
@@ -156,69 +157,111 @@ class Board
   end
 end
 
-class BoardGenerator
-  def initialize
-    with_dims 0, 0
-  end
+module BoardGenerator
+  class RandomMinesAssigner
+    def initialize board_size
+      @board_size = board_size
+    end
 
-  def with_dims(x, y)
-    @dim_x = x.to_i
-    @dim_y = y.to_i
-    @board_size = @dim_x * @dim_y
-  end
-
-  def with_mines(mines_amount)
-    @mines_amount = mines_amount.to_i
-  end
-
-  def generate
-    @tiles = Tiles.new(@dim_x)
-    @board = Board.new(@tiles, @dim_x, @dim_y)
-
-    generate_tiles
-    generate_mines
-    mark_tiles
-
-    @board
-  end
-
-  private
-
-  def generate_tiles
-    @board_size.times do |i|
-      @tiles << Tile.new(i)
+    def assign_mine_next_at
+      rand(0..@board_size - 1)
     end
   end
 
-  def generate_mines
-    @mines_amount.times do
-      loop do
-        mine_place = rand(0..@board_size - 1)
+  class PredefinedMinesAssigner
+    def initialize positions
+      @positions = positions.each
+    end
 
-        if @tiles[mine_place].is_mine
+    def assign_mine_next_at
+      @positions.next
+    end
+  end
+
+  class Params
+    attr_reader :dim_x, :dim_y, :mines_amount
+
+    def initialize
+      with_dims 0, 0
+      with_mines 0
+    end
+
+    def with_dims(x, y)
+      @dim_x = x.to_i
+      @dim_y = y.to_i
+      @board_size = @dim_x * @dim_y
+  
+      self
+    end
+  
+    def with_mines(mines_amount)
+      @mines_amount = mines_amount.to_i
+  
+      self
+    end
+
+    def board_size
+      @dim_x * @dim_y
+    end
+  end
+
+  class Generator
+    def initialize params, mines_assigner = nil
+      @params = params
+      @mines_assigner = mines_assigner || RandomMinesAssigner.new(params.board_size)
+
+      p @mines_assigner
+    end
+  
+    def generate
+      @tiles = Tiles.new(@params.dim_x)
+      @board = Board.new(@tiles, @params.dim_x, @params.dim_y)
+  
+      generate_tiles
+      generate_mines
+      mark_tiles
+  
+      @board
+    end
+  
+    private
+  
+    def generate_tiles
+      @params.board_size.times do |i|
+        @tiles << Tile.new(i)
+      end
+    end
+  
+    def generate_mines
+      @params.mines_amount.times do
+        loop do
+          mine_place = @mines_assigner.assign_mine_next_at #rand(0..@params.board_size - 1)
+  
+          if @tiles[mine_place].is_mine
+            next
+          end
+  
+          @tiles[mine_place].is_mine = true
+          break
+        end
+      end
+    end
+  
+    def mark_tiles
+      @tiles.each do |cur_tile|
+        if cur_tile.is_mine
           next
         end
-
-        @tiles[mine_place].is_mine = true
-        break
-      end
-    end
-  end
-
-  def mark_tiles
-    @tiles.each do |cur_tile|
-      if cur_tile.is_mine
-        next
-      end
-      neighbor_mines = 0
-      @tiles.get_neighbours_of(cur_tile.num).each do |neighbor_tile|
-        if neighbor_tile.is_mine
-          neighbor_mines += 1
+        neighbor_mines = 0
+        @tiles.get_neighbours_of(cur_tile.num).each do |neighbor_tile|
+          if neighbor_tile.is_mine
+            neighbor_mines += 1
+          end
         end
+        cur_tile.mines_around = neighbor_mines
       end
-      cur_tile.mines_around = neighbor_mines
     end
-  end
+  end  
 end
 
 class GameRuntime

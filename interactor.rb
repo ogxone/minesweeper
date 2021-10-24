@@ -7,13 +7,16 @@ class ConsoleInteractor
 
         r = ConsoleRenderer.new
 
-        r.render(ConsoleScreen.new.with_board(board))
+        screen = ConsoleScreen.new
+        screen.with_board(board)
+        r.render(screen)
 
         loop do
-            screen = ConsoleScreen.new
+            # screen = ConsoleScreen.new
 
             puts "Perform an action"
-            action_data = gets
+            # action_data = gets
+            action_data = 
 
             begin
                 action = create_action(action_data)
@@ -33,7 +36,8 @@ class ConsoleInteractor
             rescue GameRuntimeException => e
                 screen.with_message('Runtime exception. Message was:' + e.message)
             ensure
-                r.render(screen.with_board(board))
+                screen.with_board(board)
+                r.render(screen)
             end 
         end
     end
@@ -61,10 +65,10 @@ class ConsoleInteractor
         board_generator.generate
     end
 
-    def render(console_screen)
-        do_render_screen
-        cls
-    end
+    # def render(console_screen)
+    #     do_render_screen
+    #     cls
+    # end
 
     def create_action(action_data)
     end
@@ -108,7 +112,7 @@ class ConsoleRenderer
     end
 
     private
-    def render_board
+    def render_board board
     end
 
     def render_help
