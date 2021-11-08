@@ -205,13 +205,18 @@ module BoardGenerator
     attr_reader :dim_x, :dim_y, :mines_amount
 
     def initialize
-      with_dims 0, 0
-      with_mines 0
+      with_dims 5, 5
+      with_mines 1
     end
 
     def with_dims(x, y)
       @dim_x = x.to_i
       @dim_y = y.to_i
+
+      if @dim_x <=0 or @dim_y <= 0
+        raise StandardError.new('Invalid dimentions. Should be more that 0')
+      end
+
       @board_size = @dim_x * @dim_y
   
       self
@@ -235,6 +240,10 @@ module BoardGenerator
     end
   
     def generate
+      if @params.mines_amount > @params.board_size
+        raise StandardError.new("Mines amount exceeds board size od #{@params.board_size}")
+      end
+
       @tiles = Tiles.new(@params.dim_x)
       @board = Board.new(@tiles, @params.dim_x, @params.dim_y)
   

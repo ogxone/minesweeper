@@ -71,7 +71,7 @@ class ConsoleScreen
     attr_reader :help, :message, :board
     def initialize
         @board = nil
-        @help = nil
+        @help = false
         @message = nil
     end
     
@@ -79,12 +79,8 @@ class ConsoleScreen
         @board = board
     end
 
-    def with_help help
-        @help = help
-    end
-
-    def has_help help
-        @help = help
+    def with_help
+        @help = True
     end
 
     def with_message message
@@ -94,7 +90,6 @@ class ConsoleScreen
     def has_message message
         @message = message
     end
-
 end
 
 class ConsoleRenderer
@@ -105,8 +100,8 @@ class ConsoleRenderer
             render_board(console_screen.board)
         end
 
-        unless console_screen.help.nil?
-            render_help(console_screen.help)
+        if console_screen.help
+            render_help
         end
 
         unless console_screen.message.nil?
@@ -123,11 +118,6 @@ class ConsoleRenderer
         board.rows do |row|
             row.each do |tile|
                 render_tile(tile)
-                # if tile.is_revealed
-                #     print render_revealed_tile tile
-                # else 
-                #     print ' x '
-                # end
             end
             print "\n"
         end
@@ -167,7 +157,7 @@ class ConsoleRenderer
         end
     end
 
-    def render_help help
+    def render_help
         p 'HELP !'
     end
 
