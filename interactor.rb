@@ -122,13 +122,48 @@ class ConsoleRenderer
     def render_board board
         board.rows do |row|
             row.each do |tile|
-                if tile.is_revealed
-                    print tile.mines_around
-                else 
-                    print ' x '
-                end
+                render_tile(tile)
+                # if tile.is_revealed
+                #     print render_revealed_tile tile
+                # else 
+                #     print ' x '
+                # end
             end
             print "\n"
+        end
+    end
+
+    def render_tile tile
+        if tile.is_revealed
+            render_revealed_tile tile
+        else 
+            render_unrevealed_tile tile
+        end
+    end   
+
+    def render_unrevealed_tile tile
+        if tile.marked_as_mine
+            print "\033[0;35m M \033[0m"
+        else
+            print ' x '
+        end
+    end
+
+    def render_revealed_tile tile
+        if tile.is_mine
+            print "\033[0;34m * \033[0m"
+        elsif tile.mines_around == 0
+            print "\033[0;37m - \033[0m"
+        elsif tile.mines_around == 1
+            print "\033[0;32m #{tile.mines_around} \033[0m"
+        elsif tile.mines_around == 2
+            print "\033[0;33m #{tile.mines_around} \033[0m"
+        elsif tile.mines_around == 3
+            print "\033[0;36m #{tile.mines_around} \033[0m"
+        elsif tile.mines_around == 4
+            print "\033[0;33m #{tile.mines_around} \033[0m"
+        else
+            print "\033[0;31m #{tile.mines_around} \033[0m"
         end
     end
 

@@ -9,6 +9,7 @@ class Tile
     @is_revealed = false
     @is_mine = false
     @mines_around = 0
+    @marked_as_mine = false
   end
 
   def is_mine= is_mine
@@ -19,7 +20,10 @@ class Tile
   end
 
   def mark_as_mine
-    self.is_mine= true
+    if is_revealed
+      raise GameRuntimeException.new('Revealed tile may not be marked as mine')
+    end
+    @marked_as_mine = !@marked_as_mine
   end
 
   def has_mines_around?
@@ -153,7 +157,7 @@ class Board
 
   def mark_mine_at x, y
     tile = get_tile_at(x, y)
-    tile.is_mine = !tile.is_mine
+    tile.mark_as_mine
   end
 
   private
@@ -228,8 +232,6 @@ module BoardGenerator
     def initialize params, mines_assigner = nil
       @params = params
       @mines_assigner = mines_assigner || RandomMinesAssigner.new(params.board_size)
-
-      # p @mines_assigner
     end
   
     def generate
