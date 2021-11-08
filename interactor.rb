@@ -12,11 +12,8 @@ class ConsoleInteractor
         r.render(screen)
 
         loop do
-            # screen = ConsoleScreen.new
-
             puts "Perform an action"
-            # action_data = gets
-            action_data = 
+            action_data = gets
 
             begin
                 action = create_action(action_data)
@@ -45,30 +42,24 @@ class ConsoleInteractor
     private
 
     def generate_board
-        board_generator = BoardGenerator.new
+        params = BoardGenerator::Params.new
  
         puts 'Enter x dim:'
-        # dim_x = gets
-        dim_x = 5
+        dim_x = gets
+
         puts 'Enter y dim:'
-        # dim_y = gets
-        dim_y = 5
+        dim_y = gets
+
         # todo validate
-        board_generator.with_dims(dim_x, dim_y)
+        params.with_dims(dim_x, dim_y)
 
         puts 'Enter amount of mines:'
-        # mines = gets
-        mines = 5
+        mines = gets
+        
+        params.with_mines(mines)
 
-        board_generator.with_mines(mines)
-
-        board_generator.generate
+        BoardGenerator::Generator.new(params).generate
     end
-
-    # def render(console_screen)
-    #     do_render_screen
-    #     cls
-    # end
 
     def create_action(action_data)
     end
@@ -113,11 +104,19 @@ class ConsoleRenderer
 
     private
     def render_board board
+        board.tiles.rows do |row|
+            row.each do |tile|
+                
+            end
+        end
+        p 'BOARD !'
     end
 
-    def render_help
+    def render_help help
+        p 'HELP !'
     end
 
-    def render_message
+    def render_message message
+        p 'MESSAGE !'
     end
 end

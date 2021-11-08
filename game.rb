@@ -97,6 +97,25 @@ class Board
     @dim_y = dim_y
   end
 
+  def rows
+    row = Array.new
+    rows = Array.new
+    @tiles.each do |tile|
+      row << tile
+      if (tile.num + 1) % @dim_x == 0
+        if block_given?
+          yield(row)
+        end
+
+        rows << row
+        
+        row = Array.new
+      end
+    end
+    p rows
+    rows
+  end
+
   def get_tile_at(x, y)
     x +=1
     y += 1
@@ -210,7 +229,7 @@ module BoardGenerator
       @params = params
       @mines_assigner = mines_assigner || RandomMinesAssigner.new(params.board_size)
 
-      p @mines_assigner
+      # p @mines_assigner
     end
   
     def generate
