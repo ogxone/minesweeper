@@ -1,3 +1,5 @@
+require('byebug')
+
 class Tile
   attr_reader :is_mine, :is_revealed, :marked_as_mine, :num
   attr_accessor :mines_around
@@ -23,7 +25,6 @@ class Tile
   def has_mines_around?
     @mines_around > 0
   end
-  
 
   def reveal
     @is_revealed = true
@@ -112,7 +113,6 @@ class Board
         row = Array.new
       end
     end
-    p rows
     rows
   end
 
@@ -147,13 +147,13 @@ class Board
 
   def reveal_tile_at x, y
     tile = get_tile_at(x, y)
-    p x, y, tile
+    # p x, y, tile
     reveal_tile tile
   end
 
   def mark_mine_at x, y
     tile = get_tile_at(x, y)
-    tile.is_mine = true
+    tile.is_mine = !tile.is_mine
   end
 
   private
@@ -287,15 +287,16 @@ class GameRuntime
   def initialize(board)
     @is_live = true
     @board = board
+    @action_handlers = ActionHandlerManager.new
   end
 
-  def do_action(action)
+  def do_action(action)    
     unless @is_live
       raise StandardError.new('Game is over')
     end
 
     begin
-      action_handlers.get(action).handle(action, @board)
+      @action_handlers.get(action.class).handle(action, @board)
       handle_game_status
     rescue GameEndException
       @is_live = false
@@ -307,7 +308,7 @@ class GameRuntime
 
   def handle_game_status
     @board.tiles.each do |tile|
-      if tile.is_revealed? or (tile.is_mine? and tile.marked_as_mine?)
+      if tile.is_revealed or (tile.is_mine and tile.marked_as_mine)
         next
       end
 
@@ -318,17 +319,15 @@ class GameRuntime
   end
 end
 
-class ActionHandlerManager
-  def get(action) end
-end
-
 class RevealTileActionHandler
   def handle(action, board)
-    board.reveal_tile_at(action.x action.y)
+    board.reveal_tile_at(action.x, action.y)
   end
 end
 
 class RevealTileAction
+  attr_reader :x, :y
+
   def initialize(x, y)
     @x = x
     @y = y
@@ -342,10 +341,30 @@ class MarkMineActionHandler
 end
 
 class MarkMineAction
+  attr_reader :x, :y
+
   def initialize(x, y)
     @x = x
     @y = y
   end
+end
+
+class ActionHandlerManager
+  @@handlers = {
+    RevealTileAction =>  RevealTileActionHandler,
+    MarkMineAction => MarkMineActionHandler
+  }
+
+  def get(action) 
+    if not @@handlers.key?(action)
+      raise UndefinedActionException(action)
+    end
+
+    @@handlers[action].new
+  end
+end
+
+class GameRuntimeException < StandardError
 end
 
 class GameEndException < StandardError
@@ -357,5 +376,8 @@ end
 class GameSuccessException < GameEndException
 end
 
-class TileNotFoundException < StandardError
+class TileNotFoundException < GameRuntimeException
+end
+
+class UndefinedActionException < GameRuntimeException
 end

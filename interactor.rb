@@ -2,10 +2,12 @@ require_relative('game')
 
 class ConsoleInteractor
     def run()
-        board = generate_board
-        game_runtime = GameRuntime.new(board)
-
         r = ConsoleRenderer.new
+        r.cls
+
+        board = generate_board
+        action_factory = ActionFactory::Factory.new
+        game_runtime = GameRuntime.new(board)
 
         screen = ConsoleScreen.new
         screen.with_board(board)
@@ -16,7 +18,7 @@ class ConsoleInteractor
             action_data = gets
 
             begin
-                action = create_action(action_data)
+                action = action_factory.create_action(action_data)
             rescue StandardError => e
                 r.render(screen.with_message('invalied input. Message was:' + e.message).with_help.with_board(board))
                 next
@@ -77,8 +79,16 @@ class ConsoleScreen
         @board = board
     end
 
+    def with_help help
+        @help = help
+    end
+
     def has_help help
         @help = help
+    end
+
+    def with_message message
+        @message = message
     end
 
     def has_message message
@@ -89,6 +99,8 @@ end
 
 class ConsoleRenderer
     def render(console_screen)
+        cls
+
         unless console_screen.board.nil?
             render_board(console_screen.board)
         end
@@ -102,14 +114,22 @@ class ConsoleRenderer
         end
     end
 
+    def cls
+        system("clear && printf '\e[3J'")
+    end
+
     private
     def render_board board
-        board.tiles.rows do |row|
+        board.rows do |row|
             row.each do |tile|
-                
+                if tile.is_revealed
+                    print tile.mines_around
+                else 
+                    print ' x '
+                end
             end
+            print "\n"
         end
-        p 'BOARD !'
     end
 
     def render_help help
@@ -117,6 +137,62 @@ class ConsoleRenderer
     end
 
     def render_message message
-        p 'MESSAGE !'
+        p message
+    end
+end
+
+module ActionFactory
+    class AbstractActionFactory
+        def create_action args
+            do_create_action(parse_args(args))    
+        end
+
+        protected
+
+        def parse_args args
+            parse_coord_args(args)
+        end
+
+        def parse_coord_args args
+            x, y = args.split(%r{,}, 2)
+            [x.to_i, y.to_i]
+        end
+    end
+
+    class RevealTileActionFactory < AbstractActionFactory
+        def do_create_action args
+            RevealTileAction.new(*args)
+        end
+    end
+
+    class FactoryNotDefinedException < StandardError
+    end
+
+    class MarkMineActionFactory < AbstractActionFactory
+        def do_create_action args
+            MarkMineAction.new(*args)
+        end
+    end
+
+    class Factory
+        @@factories = {
+            'mine' => MarkMineActionFactory,
+            'rev' => RevealTileActionFactory
+        }
+
+        def create_action args
+            action, args = split_args(args)
+            if @@factories.key?(action) 
+                return @@factories[action].new.create_action(args)
+            end 
+
+            raise FactoryNotDefinedException.new("Factory not defined for action `#{action}`")
+        end 
+
+        private
+
+        def split_args args
+            args.split(%r{\s+}, 2)
+        end
     end
 end
