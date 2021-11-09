@@ -147,12 +147,10 @@ class Board
     end
 
     reveal_tile_neighbours tile
-    # end
   end
 
   def reveal_tile_at x, y
     tile = get_tile_at(x, y)
-    # p x, y, tile
     reveal_tile tile
   end
 
@@ -205,7 +203,7 @@ module BoardGenerator
   class Params
     attr_reader :dim_x, :dim_y, :mines_amount
 
-    @@max_dim_hard_limit = 999
+    @@max_dim_hard_limit = 99
 
     def initialize
       with_dims 20, 20
@@ -268,7 +266,7 @@ module BoardGenerator
     def generate_mines
       @params.mines_amount.times do
         loop do
-          mine_place = @mines_assigner.assign_mine_next_at #rand(0..@params.board_size - 1)
+          mine_place = @mines_assigner.assign_mine_next_at 
   
           if @tiles[mine_place].is_mine
             next

@@ -14,7 +14,8 @@ class ConsoleInteractor
         r.render(screen)
 
         loop do
-            puts "Perform an action"
+            screen = ConsoleScreen.new
+            puts "\nPerform an action"
             action_data = gets
 
             begin
@@ -115,12 +116,12 @@ class ConsoleRenderer
             render_board(console_screen.board)
         end
 
-        if console_screen.help
-            render_help
-        end
-
         unless console_screen.message.nil?
             render_message(console_screen.message)
+        end
+
+        if console_screen.help
+            render_help
         end
     end
 
@@ -201,11 +202,34 @@ class ConsoleRenderer
     end
 
     def render_help
-        p 'HELP !'
+        print <<-HELP
+Use one of the awailable coomands:
+
+1.
+rev <coord_x> <coord_y> 
+
+Reveals given tile
+
+Example: 
+rev 34, 23
+
+2.
+mine <coord_x> <coord_y>
+
+Marks tile as mine
+
+Example:
+mine 32, 2
+
+HELP
+        
     end
 
     def render_message message
-        p message
+        print "\n"
+        print "ERROR: "
+        print message
+        print "\n\n"
     end
 end
 
@@ -222,7 +246,7 @@ module ActionFactory
         end
 
         def parse_coord_args args
-            x, y = args.split(%r{,}, 2)
+            x, y = args.split(%r{\s+}, 2)
             [x.to_i, y.to_i]
         end
     end
