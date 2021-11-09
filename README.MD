@@ -1,8 +1,8 @@
 <img src="logo.jpeg" alt="drawing" width="200"/>
 
-# Minesweaper CLI
+# Minesweeper CLI
 
-CLI implementation of the minesweaper game
+CLI implementation of the minesweeper game
 
 ## Installing / Getting started
 
