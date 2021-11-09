@@ -95,7 +95,8 @@ class Tiles < Array
 end
 
 class Board
-  attr_reader :tiles
+  attr_reader :tiles, :dim_x, :dim_y
+
   def initialize(tiles, dim_x, dim_y)
     @tiles = tiles
     @dim_x = dim_x
@@ -109,7 +110,7 @@ class Board
       row << tile
       if (tile.num + 1) % @dim_x == 0
         if block_given?
-          yield(row)
+          yield(row, rows.length)
         end
 
         rows << row

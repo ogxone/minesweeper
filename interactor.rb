@@ -130,29 +130,40 @@ class ConsoleRenderer
 
     private
     def render_board board
-        print "    "
-        print "00|00|"
-        print "\n"
-        print "    "
-        print "------"
+        render_x_scale(board.dim_x, board.dim_y)
 
-        # print "    "
-        # print "000"
-        # # print "\n"
-        # print "    "
-        # print "---"
-        # print "\n"
-        
-
-        print "\n"
-
-        board.rows do |row|
-            print '00|'
+        board.rows do |row, idx|
+            render_y_scale_row(idx, board.dim_y)
             row.each do |tile|
                 render_tile(tile)
             end
             print "\n"
         end
+    end
+
+    def render_x_scale dim_x, dim_y
+        print " " * dim_x.to_s.length + " "
+        dim_x.times do |idx|
+            print "#{align_scale_index(idx, dim_y)} "
+        end
+        print "\n"
+    end
+
+    def render_y_scale_row idx, dim_y
+        print "#{align_scale_index(idx, dim_y)} "
+    end
+
+    def align_scale_index idx, dim
+        dim_len = dim.to_s.length
+        idx_len = idx.to_s.length
+        
+        idx_pad = dim_len - idx_len
+
+        if idx_pad > 0
+            return '0' * idx_pad + idx.to_s
+        end
+
+        idx.to_s
     end
 
     def render_tile tile
