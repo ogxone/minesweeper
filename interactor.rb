@@ -46,17 +46,26 @@ class ConsoleInteractor
     def generate_board
         params = BoardGenerator::Params.new
  
-        puts 'Enter x dim:'
-        dim_x = gets
+        puts "Enter x dim(#{params.dim_x}):"
+        dim_x = gets.chomp
+        if dim_x.empty?
+            dim_x = params.dim_x
+        end
 
-        puts 'Enter y dim:'
-        dim_y = gets
-
-        # todo validate
+        puts "Enter y dim(#{params.dim_y}):"
+        dim_y = gets.chomp
+        if dim_y.empty?
+            dim_y = params.dim_y
+        end
+        
         params.with_dims(dim_x, dim_y)
 
-        puts 'Enter amount of mines:'
-        mines = gets
+        puts "Enter amount of mines(#{params.mines_amount}):"
+        mines = gets.chomp
+        if mines.empty?
+            mines = params.mines_amount
+        end
+
         
         params.with_mines(mines)
 
@@ -77,14 +86,20 @@ class ConsoleScreen
     
     def with_board board
         @board = board
+
+        self
     end
 
     def with_help
-        @help = True
+        @help = true
+
+        self
     end
 
     def with_message message
         @message = message
+
+        self
     end
 
     def has_message message
@@ -115,7 +130,24 @@ class ConsoleRenderer
 
     private
     def render_board board
+        print "    "
+        print "00|00|"
+        print "\n"
+        print "    "
+        print "------"
+
+        # print "    "
+        # print "000"
+        # # print "\n"
+        # print "    "
+        # print "---"
+        # print "\n"
+        
+
+        print "\n"
+
         board.rows do |row|
+            print '00|'
             row.each do |tile|
                 render_tile(tile)
             end

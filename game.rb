@@ -204,17 +204,19 @@ module BoardGenerator
   class Params
     attr_reader :dim_x, :dim_y, :mines_amount
 
+    @@max_dim_hard_limit = 999
+
     def initialize
-      with_dims 5, 5
-      with_mines 1
+      with_dims 20, 20
+      with_mines 50
     end
 
     def with_dims(x, y)
       @dim_x = x.to_i
       @dim_y = y.to_i
 
-      if @dim_x <=0 or @dim_y <= 0
-        raise StandardError.new('Invalid dimentions. Should be more that 0')
+      if @dim_x <=0 or @dim_x > @@max_dim_hard_limit or @dim_y <= 0 or @dim_y > @@max_dim_hard_limit
+        raise StandardError.new("Invalid dimentions. Should be more that 1 and less #{@@max_dim_hard_limit}")
       end
 
       @board_size = @dim_x * @dim_y
