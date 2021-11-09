@@ -144,13 +144,13 @@ class ConsoleRenderer
     def render_x_scale dim_x, dim_y
         print " " * dim_x.to_s.length + " "
         dim_x.times do |idx|
-            print "#{align_scale_index(idx, dim_y)} "
+            print "\033[0;35m#{align_scale_index(idx, dim_y)} \033[0m"
         end
         print "\n"
     end
 
     def render_y_scale_row idx, dim_y
-        print "#{align_scale_index(idx, dim_y)} "
+        print "\033[0;35m#{align_scale_index(idx, dim_y)} \033[0m"
     end
 
     def align_scale_index idx, dim
