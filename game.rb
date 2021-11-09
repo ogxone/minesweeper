@@ -1,5 +1,3 @@
-require('byebug')
-
 class Tile
   attr_reader :is_mine, :is_revealed, :marked_as_mine, :num
   attr_accessor :mines_around
